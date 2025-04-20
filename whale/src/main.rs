@@ -85,9 +85,9 @@ impl Board {
         }
 
         let [fen_board, turn, castling_availability,
-            en_passant_target_square, halfmove_clock, fullmove_clock] = components;
+            en_passant_target_square, halfmove_clock, fullmove_clock] = components[..] else { todo!() };
 
-        let turn = if turn == &"w" { Color::White } else if turn == &"b" { Color::Black } else { panic!("Found invalid turn string {turn} while parsing FEN notation") };
+        let turn = if turn == "w" { Color::White } else if turn == "b" { Color::Black } else { panic!("Found invalid turn string {turn} while parsing FEN notation") };
         let en_passant_target_square = if en_passant_target_square == "-" { None } else { Some(en_passant_target_square.into()) };
 
         let mut board = Board {
@@ -116,7 +116,7 @@ impl Board {
                 if x.is_digit(10) {
                     column_index += x.to_digit(10).unwrap()
                 } else {
-                    board.cells[row_index * 8 + column_index] = match x {
+                    board.cells[row_index * 8 + column_index as usize] = match x {
                         'P' => new_piece(Piece::Pawn, Color::White),
                         'R' => new_piece(Piece::Rook, Color::White),
                         'N' => new_piece(Piece::Knight, Color::White),
@@ -180,12 +180,12 @@ fn main() {
     let mut board = Board::new("");
 }
 
-fn print_bord(bord :Board){
+fn print_bord(bord: Board){
     for i in 0..63 {
 
-        if bord[i]<1{
+        if bord.cells[i]<1 {
 
-        }else if bord[i]<7 {
+        } else if bord.cells[i]<7 {
 
         }
     }
