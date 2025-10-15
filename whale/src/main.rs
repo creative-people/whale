@@ -10,6 +10,19 @@ struct Board {
     fullmove_clock: usize,
 }
 
+impl Clone for Board {
+    fn clone(&self) -> Self {
+        Board {
+            cells: self.cells,
+            turn: self.turn.clone(),
+            castling_availability: self.castling_availability,
+            en_passant_target_square: self.en_passant_target_square.clone(),
+            halfmove_clock: self.halfmove_clock,
+            fullmove_clock: self.fullmove_clock,
+        }
+    }
+}
+
 #[repr(u8)]
 enum Piece {
     Pawn = 1,
@@ -41,6 +54,15 @@ impl TryFrom<u8> for Piece {
 enum Color {
     Black = 0,
     White = 1
+}
+
+impl Clone for Color {
+    fn clone(&self) -> Self {
+        match self {
+            Color::Black => Color::Black,
+            Color::White => Color::White
+        }
+    }
 }
 
 impl Into<bool> for Color {
@@ -148,6 +170,18 @@ impl Board {
 struct Mailbox120Index(pub u8);
 struct Mailbox64Index(pub u8);
 
+impl Clone for Mailbox120Index {
+    fn clone(&self) -> Self {
+        Mailbox120Index(self.0)
+    }
+}
+
+impl Clone for Mailbox64Index {
+    fn clone(&self) -> Self {
+        Mailbox64Index(self.0)
+    }
+}
+
 impl From<&str> for Mailbox64Index {
     fn from(value: &str) -> Self {
         let mut chars = value.chars();
@@ -184,8 +218,6 @@ const MAILBOX64: [u8; 64] = [
 ];
 
 fn main() {
-    let mut board = Board::default();
-
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([1860.0, 1280.0]).with_resizable(false),
         ..Default::default()
@@ -197,24 +229,42 @@ fn main() {
     );
 }
 
-fn print_bord(bord: Board){
-    for i in 0..63 {
-
-        if bord.cells[i]<1 {
-
-        } else if bord.cells[i]<7 {
-
+fn print_board(board: Board){
+    println!("{:?}", board.cells); // debug: just print board array
+    println!("  +---+---+---+---+---+---+---+---+");
+    for i in 0..8 {
+        print!("{} |", 8 - i);
+        for j in 0..8 {
+            let cell = board.cells[i * 8 + j];
+            if cell == 0 {
+                print!("   |");
+            } else {
+                let (piece, color) = piece_from_u8(cell);
+                let symbol = match piece {
+                    Piece::Pawn => 'P',
+                    Piece::Bishop => 'B',
+                    Piece::Rook => 'R',
+                    Piece::Knight => 'N',
+                    Piece::Queen => 'Q',
+                    Piece::King => 'K',
+                };
+                let display_char = if color.into() { symbol } else { symbol.to_ascii_lowercase() };
+                print!(" {} |", display_char);
+            }
         }
+        println!("\n  +---+---+---+---+---+---+---+---+");
     }
+    println!("    a   b   c   d   e   f   g   h");
 }
 
 struct WhaleApp {
-
+    board: Board
 }
 
 impl WhaleApp {
     fn new() -> Self {
         Self {
+            board: Board::default()
         }
     }
 }
@@ -223,6 +273,7 @@ impl App for WhaleApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Hello World!");
+            print_board(self.board.clone());
         });
     }
 }
