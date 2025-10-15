@@ -289,7 +289,7 @@ fn main() {
         ..Default::default()
     };
     let _ = eframe::run_native(
-        "Assembly VM",
+        "Whale Chess",
         options,
         Box::new(|_cc| Ok(Box::<WhaleApp>::new(WhaleApp::new()))),
     );
