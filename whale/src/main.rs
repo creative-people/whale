@@ -102,26 +102,36 @@ fn piece_from_u8(input: u8) -> (Piece, Color) {
 
 impl Board {
     /// Build board from FEN notation
-    fn new(string: &str) -> Board {
-        let components: Vec<_> = string.split_whitespace()
-            .collect();
-        if components.len() != 6 {
-            panic!("Found invalid length {} of FEN notation", components.len());
+    fn new(fen: &str) -> Board {
+        let parts: Vec<_> = fen.split_whitespace().collect();
+        if parts.len() != 6 {
+            panic!("Invalid FEN: expected 6 fields, found {}", parts.len());
         }
 
-        let [fen_board, turn, castling_availability,
-            en_passant_target_square, halfmove_clock, fullmove_clock] = components[..] else { todo!() };
+        let fen_board = parts[0];
+        let turn = match parts[1] {
+            "w" => Color::White,
+            "b" => Color::Black,
+            x => panic!("Invalid turn field: {}", x),
+        };
 
-        let turn = if turn == "w" { Color::White } else if turn == "b" { Color::Black } else { panic!("Found invalid turn string {turn} while parsing FEN notation") };
-        let en_passant_target_square = if en_passant_target_square == "-" { None } else { Some(en_passant_target_square.into()) };
+        let castling_availability = parts[2];
+        let en_passant_target_square = if parts[3] == "-" {
+            None
+        } else {
+            Some(parts[3].into())
+        };
+
+        let halfmove_clock = parts[4].parse::<u8>().expect("Invalid halfmove clock");
+        let fullmove_clock = parts[5].parse::<usize>().expect("Invalid fullmove clock");
 
         let mut board = Board {
             cells: [0; 64],
             turn,
             castling_availability: [false; 4],
             en_passant_target_square,
-            halfmove_clock: halfmove_clock.parse().unwrap(),
-            fullmove_clock: fullmove_clock.parse().unwrap(),
+            halfmove_clock,
+            fullmove_clock,
         };
 
         for x in castling_availability.chars() {
@@ -131,34 +141,40 @@ impl Board {
                 'k' => board.castling_availability[2] = true,
                 'q' => board.castling_availability[3] = true,
                 '-' => (),
-                x => panic!("Found invalid char {x} while parsing FEN notation")
+                c => panic!("Invalid castling char '{}'", c),
             }
         }
 
-        for (row_index, row_positions) in fen_board.split("/").enumerate() {
-            let mut column_index = 0;
-            for x in row_positions.chars() {
-                if x.is_digit(10) {
-                    column_index += x.to_digit(10).unwrap()
+        for (row_idx, rank) in fen_board.split('/').enumerate() {
+            let mut file = 0;
+            for c in rank.chars() {
+                if c.is_ascii_digit() {
+                    file += c.to_digit(10).unwrap() as usize;
                 } else {
-                    board.cells[row_index * 8 + column_index as usize] = match x {
+                    let piece = match c {
                         'P' => new_piece(Piece::Pawn, Color::White),
-                        'R' => new_piece(Piece::Rook, Color::White),
                         'N' => new_piece(Piece::Knight, Color::White),
                         'B' => new_piece(Piece::Bishop, Color::White),
+                        'R' => new_piece(Piece::Rook, Color::White),
                         'Q' => new_piece(Piece::Queen, Color::White),
                         'K' => new_piece(Piece::King, Color::White),
                         'p' => new_piece(Piece::Pawn, Color::Black),
-                        'r' => new_piece(Piece::Rook, Color::Black),
                         'n' => new_piece(Piece::Knight, Color::Black),
                         'b' => new_piece(Piece::Bishop, Color::Black),
+                        'r' => new_piece(Piece::Rook, Color::Black),
                         'q' => new_piece(Piece::Queen, Color::Black),
                         'k' => new_piece(Piece::King, Color::Black),
-                        x => panic!("Found invalid char {x} while parsing FEN notation")
-                    }
+                        x => panic!("Invalid piece char '{}'", x),
+                    };
+                    board.cells[row_idx * 8 + file] = piece;
+                    file += 1;
                 }
             }
+            if file != 8 {
+                panic!("Invalid FEN row '{}': expected 8 columns, got {}", rank, file);
+            }
         }
+
         board
     }
 
