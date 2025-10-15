@@ -1,3 +1,6 @@
+use eframe;
+use eframe::{egui, App};
+
 struct Board {
     cells: [u8; 64],
     turn: Color,
@@ -182,6 +185,16 @@ const MAILBOX64: [u8; 64] = [
 
 fn main() {
     let mut board = Board::default();
+
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default().with_inner_size([1860.0, 1280.0]).with_resizable(false),
+        ..Default::default()
+    };
+    let _ = eframe::run_native(
+        "Assembly VM",
+        options,
+        Box::new(|_cc| Ok(Box::<WhaleApp>::new(WhaleApp::new()))),
+    );
 }
 
 fn print_bord(bord: Board){
@@ -192,5 +205,24 @@ fn print_bord(bord: Board){
         } else if bord.cells[i]<7 {
 
         }
+    }
+}
+
+struct WhaleApp {
+
+}
+
+impl WhaleApp {
+    fn new() -> Self {
+        Self {
+        }
+    }
+}
+
+impl App for WhaleApp {
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Hello World!");
+        });
     }
 }
