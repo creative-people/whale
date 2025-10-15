@@ -246,7 +246,6 @@ fn main() {
 }
 
 fn print_board(board: Board){
-    println!("{:?}", board.cells); // debug: just print board array
     println!("  +---+---+---+---+---+---+---+---+");
     for i in 0..8 {
         print!("{} |", 8 - i);
