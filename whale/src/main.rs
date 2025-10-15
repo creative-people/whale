@@ -207,6 +207,53 @@ impl From<&str> for Mailbox64Index {
     }
 }
 
+impl From<Mailbox64Index> for Mailbox120Index {
+    fn from(value: Mailbox64Index) -> Self {
+        Mailbox120Index(MAILBOX64[value.0 as usize])
+    }
+}
+
+impl From<Mailbox120Index> for Mailbox64Index {
+    fn from(value: Mailbox120Index) -> Self {
+        let idx = MAILBOX120.iter().position(|&x| x == value.0 as i8).unwrap();
+        Mailbox64Index(idx as u8)
+    }
+}
+
+fn offset_index(index: Mailbox64Index, offset: i8) -> Option<Mailbox64Index> {
+    let abs_index = MAILBOX64[index.0 as usize] as i8 + offset;
+    if abs_index < 0 || abs_index >= 120 {
+        panic!("Invalid Mailbox64 index: {}", abs_index);
+    }
+    let new_index = MAILBOX120[abs_index as usize];
+    if new_index == -1 {
+        return None;
+    }
+    Some(Mailbox64Index(new_index as u8))
+}
+
+fn offset_index_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8) -> Option<Mailbox64Index> {
+    if file_offset < -2 || file_offset > 2 || rank_offset < -2 || rank_offset > 2 {
+        return None;
+    }
+    offset_index(index, file_offset + rank_offset * 10)
+}
+
+fn offset_ray(index: Mailbox64Index, file_offset: i8, rank_offset: i8, length: u8) -> Vec<Mailbox64Index> {
+    let mut results = Vec::new();
+    let mut current_index = index;
+    for _ in 0..length {
+        match offset_index_2d(current_index, file_offset, rank_offset) {
+            Some(new_index) => {
+                results.push(new_index.clone());
+                current_index = new_index;
+            },
+            None => break,
+        }
+    }
+    results
+}
+
 const MAILBOX120: [i8; 120] = [
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
