@@ -136,6 +136,10 @@ impl Board {
         }
         board
     }
+
+    fn default() -> Board {
+        Board::new("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+    }
 }
 
 struct Mailbox120Index(pub u8);
@@ -177,7 +181,7 @@ const MAILBOX64: [u8; 64] = [
 ];
 
 fn main() {
-    let mut board = Board::new("");
+    let mut board = Board::default();
 }
 
 fn print_bord(bord: Board){
