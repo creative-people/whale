@@ -42,41 +42,48 @@ impl WhaleApp {
 
 impl App for WhaleApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Chess Board");
-            let rect = ui.available_rect_before_wrap();
-            let painter = ui.painter();
+         egui::SidePanel::left("side_panel").width_range(egui::Rangef::new(200.0, 500.0)).resizable(true).show(ctx, |ui| {
+             ui.heading("Whale Chess");
+         });
+         egui::SidePanel::right("right_panel").width_range(egui::Rangef::new(200.0, 500.0)).resizable(true).show(ctx, |ui| {
+             ui.heading("Whale Chess - Right Panel");
+         });
+         egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
+             ui.heading("Whale Chess - Bottom Panel");
+         });
+         egui::CentralPanel::default().show(ctx, |ui| {
+             let rect = ui.available_rect_before_wrap();
+             let painter = ui.painter();
 
-            let board_size = 8; // 8x8
-            let side = rect.width().min(rect.height());
-            let top_left = rect.center() - egui::vec2(side / 2.0, side / 2.0);
-            let square_size = side / board_size as f32;
+             let board_size = 8; // 8x8
+             let side = rect.width().min(rect.height());
+             let top_left = rect.center() - egui::vec2(side / 2.0, side / 2.0);
+             let square_size = side / board_size as f32;
 
-            if square_size > 0.0 {
-                let color_a = egui::Color32::from_rgb(255, 238, 215);
-                let color_b = egui::Color32::from_rgb(58, 34, 0);
+             if square_size > 0.0 {
+                 let color_a = egui::Color32::from_rgb(255, 238, 215);
+                 let color_b = egui::Color32::from_rgb(58, 34, 0);
 
-                for row in 0..board_size {
-                    for col in 0..board_size {
-                        let x = top_left.x + col as f32 * square_size;
-                        let y = top_left.y + row as f32 * square_size;
-                        let rect = egui::Rect::from_min_max(
-                            egui::pos2(x, y),
-                            egui::pos2(x + square_size, y + square_size),
-                        );
-                        println!("{}", self.board.cells[row * 8 + col]);
-                        let color = if (row + col) % 2 == 0 { color_a } else { color_b };
-                        painter.rect_filled(rect, 0.0, color);
-                        painter.text(
-                            rect.center(),
-                            egui::Align2::CENTER_CENTER,
-                            self.board.cells[row * 8 + col].to_string(),
-                            egui::FontId::proportional(square_size * 0.5),
-                            egui::Color32::RED,
-                        );
-                    }
-                }
-            }
-        });
+                 for row in 0..board_size {
+                     for col in 0..board_size {
+                         let x = top_left.x + col as f32 * square_size;
+                         let y = top_left.y + row as f32 * square_size;
+                         let rect = egui::Rect::from_min_max(
+                             egui::pos2(x, y),
+                             egui::pos2(x + square_size, y + square_size),
+                         );
+                         let color = if (row + col) % 2 == 0 { color_a } else { color_b };
+                         painter.rect_filled(rect, 0.0, color);
+                         painter.text(
+                             rect.center(),
+                             egui::Align2::CENTER_CENTER,
+                             self.board.cells[row * 8 + col].to_string(),
+                             egui::FontId::proportional(square_size * 0.5),
+                             egui::Color32::RED,
+                         );
+                     }
+                 }
+             }
+         });
     }
 }
