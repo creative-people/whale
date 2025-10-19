@@ -285,7 +285,7 @@ const MAILBOX64: [u8; 64] = [
 
 fn main() {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([1860.0, 1280.0]).with_resizable(false),
+        viewport: egui::ViewportBuilder::default().with_inner_size([1860.0, 1280.0]).with_resizable(true),
         ..Default::default()
     };
     let _ = eframe::run_native(
