@@ -1,5 +1,5 @@
 use eframe::{egui, App};
-use crate::{piece_from_u8, Board, Piece};
+use crate::chess_parts::{piece_from_u8, Board, Piece};
 
 fn print_board(board: Board){
     println!("  +---+---+---+---+---+---+---+---+");
