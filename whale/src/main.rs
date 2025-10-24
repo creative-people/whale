@@ -242,11 +242,11 @@ fn offset_index_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8) -> O
     offset_index(index, file_offset + rank_offset * 10)
 }
 
-fn offset_ray(index: Mailbox64Index, file_offset: i8, rank_offset: i8, length: u8) -> Vec<Mailbox64Index> {
+fn offset_ray(index: Mailbox64Index, offset: i8, length: u8) -> Vec<Mailbox64Index> {
     let mut results = Vec::new();
     let mut current_index = index;
     for _ in 0..length {
-        match offset_index_2d(current_index, file_offset, rank_offset) {
+        match offset_index(current_index, offset) {
             Some(new_index) => {
                 results.push(new_index.clone());
                 current_index = new_index;
@@ -255,6 +255,13 @@ fn offset_ray(index: Mailbox64Index, file_offset: i8, rank_offset: i8, length: u
         }
     }
     results
+}
+
+fn offset_ray_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8, length: u8) -> Vec<Mailbox64Index> {
+    if file_offset < -2 || file_offset > 2 || rank_offset < -2 || rank_offset > 2 {
+        return Vec::new();
+    }
+    offset_ray(index, file_offset + rank_offset * 10, length).into()
 }
 
 const MAILBOX120: [i8; 120] = [
