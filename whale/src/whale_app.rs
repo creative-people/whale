@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use eframe::{egui, App};
 use crate::chess_parts::{piece_from_u8, Board, Piece};
 
@@ -31,7 +32,7 @@ fn print_board(board: Board){
 pub(crate) struct WhaleApp {
     board: Board,
     image_bytes: Vec<(&'static str, &'static [u8])>,
-    textures: Vec<egui::TextureHandle>,
+    textures: HashMap<&'static str, egui::TextureHandle>,
 }
 
 impl WhaleApp {
@@ -52,7 +53,7 @@ impl WhaleApp {
                 ("white_king", include_bytes!("assets/white-king.png")),
                 ("black_king", include_bytes!("assets/black-king.png")),
             ],
-            textures: Vec::new(),
+            textures: HashMap::new(),
         }
     }
 }
@@ -64,11 +65,11 @@ impl App for WhaleApp {
                 let img = image::load_from_memory(bytes).unwrap().to_rgba8();
                 let size = [img.width() as usize, img.height() as usize];
                 let tex = ctx.load_texture(
-                    name.to_string(),
+                    *name,
                     egui::ColorImage::from_rgba_unmultiplied(size, img.as_raw()),
                     egui::TextureOptions::default(),
                 );
-                self.textures.push(tex);
+                self.textures.insert(name, tex);
             }
         }
 
@@ -83,7 +84,7 @@ impl App for WhaleApp {
         });
         egui::CentralPanel::default().show(ctx, |ui| {
             let rect = ui.available_rect_before_wrap();
-            let painter = ui.painter();
+            let painter = ui.painter().clone();
 
             let board_size = 8; // 8x8
             let side = rect.width().min(rect.height());
@@ -104,13 +105,35 @@ impl App for WhaleApp {
                         );
                         let color = if (row + col) % 2 == 0 { color_a } else { color_b };
                         painter.rect_filled(rect, 0.0, color);
-                        painter.text(
-                            rect.center(),
-                            egui::Align2::CENTER_CENTER,
-                            self.board.cells[row * 8 + col].to_string(),
-                            egui::FontId::proportional(square_size * 0.5),
-                            egui::Color32::RED,
-                        );
+                        let piece_name = match self.board.cells[row * 8 + col] {
+                            0 => None,
+                            cell => {
+                                let (piece, color) = piece_from_u8(cell);
+                                let name = match piece {
+                                    Piece::Pawn => "pawn",
+                                    Piece::Rook => "rook",
+                                    Piece::Knight => "knight",
+                                    Piece::Bishop => "bishop",
+                                    Piece::Queen => "queen",
+                                    Piece::King => "king",
+                                };
+                                Some(if color.into() {
+                                    format!("white_{}", name)
+                                } else {
+                                    format!("black_{}", name)
+                                })
+                            }
+                        };
+                        if let Some(name) = piece_name {
+                            if let Some(texture) = self.textures.get(name.as_str()) {
+                                painter.image(
+                                    texture.id(),
+                                    rect,
+                                    egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                                    egui::Color32::WHITE,
+                                );
+                            }
+                        }
                     }
                 }
             }
