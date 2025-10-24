@@ -29,61 +29,91 @@ fn print_board(board: Board){
 }
 
 pub(crate) struct WhaleApp {
-    board: Board
+    board: Board,
+    image_bytes: Vec<(&'static str, &'static [u8])>,
+    textures: Vec<egui::TextureHandle>,
 }
 
 impl WhaleApp {
     pub(crate) fn new() -> Self {
         Self {
-            board: Board::default()
+            board: Board::default(),
+            image_bytes: vec![
+                ("white_pawn", include_bytes!("assets/white-pawn.png")),
+                ("black_pawn", include_bytes!("assets/black-pawn.png")),
+                ("white_rook", include_bytes!("assets/white-rook.png")),
+                ("black_rook", include_bytes!("assets/black-rook.png")),
+                ("white_knight", include_bytes!("assets/white-knight.png")),
+                ("black_knight", include_bytes!("assets/black-knight.png")),
+                ("white_bishop", include_bytes!("assets/white-bishop.png")),
+                ("black_bishop", include_bytes!("assets/black-bishop.png")),
+                ("white_queen", include_bytes!("assets/white-queen.png")),
+                ("black_queen", include_bytes!("assets/black-queen.png")),
+                ("white_king", include_bytes!("assets/white-king.png")),
+                ("black_king", include_bytes!("assets/black-king.png")),
+            ],
+            textures: Vec::new(),
         }
     }
 }
 
 impl App for WhaleApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-         egui::SidePanel::left("side_panel").width_range(egui::Rangef::new(200.0, 500.0)).resizable(true).show(ctx, |ui| {
-             ui.heading("Whale Chess");
-         });
-         egui::SidePanel::right("right_panel").width_range(egui::Rangef::new(200.0, 500.0)).resizable(true).show(ctx, |ui| {
-             ui.heading("Whale Chess - Right Panel");
-         });
-         egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-             ui.heading("Whale Chess - Bottom Panel");
-         });
-         egui::CentralPanel::default().show(ctx, |ui| {
-             let rect = ui.available_rect_before_wrap();
-             let painter = ui.painter();
+        if self.textures.is_empty() {
+            for (name, bytes) in &self.image_bytes {
+                let img = image::load_from_memory(bytes).unwrap().to_rgba8();
+                let size = [img.width() as usize, img.height() as usize];
+                let tex = ctx.load_texture(
+                    name.to_string(),
+                    egui::ColorImage::from_rgba_unmultiplied(size, img.as_raw()),
+                    egui::TextureOptions::default(),
+                );
+                self.textures.push(tex);
+            }
+        }
 
-             let board_size = 8; // 8x8
-             let side = rect.width().min(rect.height());
-             let top_left = rect.center() - egui::vec2(side / 2.0, side / 2.0);
-             let square_size = side / board_size as f32;
+        egui::SidePanel::left("side_panel").width_range(egui::Rangef::new(200.0, 500.0)).resizable(true).show(ctx, |ui| {
+            ui.heading("Whale Chess");
+        });
+        egui::SidePanel::right("right_panel").width_range(egui::Rangef::new(200.0, 500.0)).resizable(true).show(ctx, |ui| {
+            ui.heading("Whale Chess - Right Panel");
+        });
+        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
+            ui.heading("Whale Chess - Bottom Panel");
+        });
+        egui::CentralPanel::default().show(ctx, |ui| {
+            let rect = ui.available_rect_before_wrap();
+            let painter = ui.painter();
 
-             if square_size > 0.0 {
-                 let color_a = egui::Color32::from_rgb(255, 238, 215);
-                 let color_b = egui::Color32::from_rgb(58, 34, 0);
+            let board_size = 8; // 8x8
+            let side = rect.width().min(rect.height());
+            let top_left = rect.center() - egui::vec2(side / 2.0, side / 2.0);
+            let square_size = side / board_size as f32;
 
-                 for row in 0..board_size {
-                     for col in 0..board_size {
-                         let x = top_left.x + col as f32 * square_size;
-                         let y = top_left.y + row as f32 * square_size;
-                         let rect = egui::Rect::from_min_max(
-                             egui::pos2(x, y),
-                             egui::pos2(x + square_size, y + square_size),
-                         );
-                         let color = if (row + col) % 2 == 0 { color_a } else { color_b };
-                         painter.rect_filled(rect, 0.0, color);
-                         painter.text(
-                             rect.center(),
-                             egui::Align2::CENTER_CENTER,
-                             self.board.cells[row * 8 + col].to_string(),
-                             egui::FontId::proportional(square_size * 0.5),
-                             egui::Color32::RED,
-                         );
-                     }
-                 }
-             }
-         });
+            if square_size > 0.0 {
+                let color_a = egui::Color32::from_rgb(255, 238, 215);
+                let color_b = egui::Color32::from_rgb(58, 34, 0);
+
+                for row in 0..board_size {
+                    for col in 0..board_size {
+                        let x = top_left.x + col as f32 * square_size;
+                        let y = top_left.y + row as f32 * square_size;
+                        let rect = egui::Rect::from_min_max(
+                            egui::pos2(x, y),
+                            egui::pos2(x + square_size, y + square_size),
+                        );
+                        let color = if (row + col) % 2 == 0 { color_a } else { color_b };
+                        painter.rect_filled(rect, 0.0, color);
+                        painter.text(
+                            rect.center(),
+                            egui::Align2::CENTER_CENTER,
+                            self.board.cells[row * 8 + col].to_string(),
+                            egui::FontId::proportional(square_size * 0.5),
+                            egui::Color32::RED,
+                        );
+                    }
+                }
+            }
+        });
     }
 }
