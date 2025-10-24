@@ -154,6 +154,24 @@ impl App for WhaleApp {
                                     }
                                 }
                                 if piece_response.drag_stopped() {
+                                    let pointer_pos = piece_response.interact_pointer_pos();
+                                    if pointer_pos.is_none() {
+                                        continue;
+                                    }
+                                    let pointer_pos = pointer_pos.unwrap();
+                                    let new_col = ((pointer_pos.x - top_left.x) / square_size).floor() as usize;
+                                    let new_row = ((pointer_pos.y - top_left.y) / square_size).floor() as usize;
+                                    if new_row < 8 && new_col < 8 {
+                                        if let Some((old_row, old_col)) = self.dragging_piece {
+                                            if old_row == new_row && old_col == new_col {
+                                                self.dragging_piece = None;
+                                                continue;
+                                            }
+                                            let piece = self.board.cells[old_row * 8 + old_col];
+                                            self.board.cells[new_row * 8 + new_col] = piece;
+                                            self.board.cells[old_row * 8 + old_col] = 0;
+                                        }
+                                    }
                                     self.dragging_piece = None;
                                 }
                             }
