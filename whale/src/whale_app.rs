@@ -160,8 +160,14 @@ impl App for WhaleApp {
                                         continue;
                                     }
                                     let pointer_pos = pointer_pos.unwrap();
-                                    let new_col = ((pointer_pos.x - top_left.x) / square_size).floor() as usize;
-                                    let new_row = ((pointer_pos.y - top_left.y) / square_size).floor() as usize;
+                                    let rel_x = pointer_pos.x - top_left.x;
+                                    let rel_y = pointer_pos.y - top_left.y;
+                                    if rel_x < 0.0 || rel_y < 0.0 {
+                                        self.dragging_piece = None;
+                                        continue;
+                                    }
+                                    let new_col = (rel_x / square_size).floor() as usize;
+                                    let new_row = (rel_y / square_size).floor() as usize;
                                     if new_row < 8 && new_col < 8 {
                                         if let Some((old_row, old_col)) = self.dragging_piece {
                                             if old_row == new_row && old_col == new_col {
