@@ -1,3 +1,6 @@
+use std::collections::HashMap;
+use once_cell::sync::Lazy;
+
 pub(crate) struct Board {
     pub(crate) cells: [u8; 64],
     turn: Color,
@@ -21,6 +24,7 @@ impl Clone for Board {
 }
 
 #[repr(u8)]
+#[derive(Eq, Hash, PartialEq)]
 pub(crate) enum Piece {
     Pawn = 1,
     Bishop,
@@ -47,8 +51,24 @@ impl TryFrom<u8> for Piece {
     }
 }
 
+pub(crate) static MOVESETS: Lazy<HashMap<(Piece, Color), (Vec<(i8, i8)>, bool)>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    m.insert((Piece::Pawn, Color::White), (vec![(0, -1), (0, -2), (1, -1), (-1, -1)], false));
+    m.insert((Piece::Pawn, Color::Black), (vec![(0, 1), (0, 2), (1, 1), (-1, 1)], false));
+
+    for color in [Color::White, Color::Black] {
+        m.insert((Piece::Knight, color.clone()), (vec![(1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1), (-2, 1), (-1, 2)], false));
+        m.insert((Piece::Bishop, color.clone()), (vec![(1, 1), (1, -1), (-1, -1), (-1, 1)], true));
+        m.insert((Piece::Rook, color.clone()), (vec![(0, 1), (1, 0), (0, -1), (-1, 0)], true));
+        m.insert((Piece::Queen, color.clone()), (vec![(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)], true));
+        m.insert((Piece::King, color.clone()), (vec![(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (1, -1), (-1, -1), (-1, 1)], false));
+    }
+    m
+});
+
 #[repr(u8)]
 #[derive(Clone)]
+#[derive(Eq, Hash, PartialEq)]
 pub(crate) enum Color {
     Black = 0,
     White = 1
@@ -174,7 +194,7 @@ impl Board {
 #[derive(Clone)]
 struct Mailbox120Index(pub u8);
 #[derive(Clone)]
-struct Mailbox64Index(pub u8);
+pub(crate) struct Mailbox64Index(pub u8);
 
 impl From<&str> for Mailbox64Index {
     fn from(value: &str) -> Self {
@@ -210,7 +230,7 @@ fn offset_index(index: Mailbox64Index, offset: i8) -> Option<Mailbox64Index> {
     Some(Mailbox64Index(new_index as u8))
 }
 
-fn offset_index_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8) -> Option<Mailbox64Index> {
+pub(crate) fn offset_index_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8) -> Option<Mailbox64Index> {
     if file_offset < -2 || file_offset > 2 || rank_offset < -2 || rank_offset > 2 {
         return None;
     }
@@ -219,7 +239,7 @@ fn offset_index_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8) -> O
 
 fn offset_ray(index: Mailbox64Index, offset: i8, length: u8) -> Vec<Mailbox64Index> {
     let mut results = Vec::new();
-    let mut current_index = index;
+    let mut current_index = index.clone();
     for _ in 0..length {
         match offset_index(current_index, offset) {
             Some(new_index) => {
@@ -232,7 +252,7 @@ fn offset_ray(index: Mailbox64Index, offset: i8, length: u8) -> Vec<Mailbox64Ind
     results
 }
 
-fn offset_ray_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8, length: u8) -> Vec<Mailbox64Index> {
+pub(crate) fn offset_ray_2d(index: Mailbox64Index, file_offset: i8, rank_offset: i8, length: u8) -> Vec<Mailbox64Index> {
     if file_offset < -2 || file_offset > 2 || rank_offset < -2 || rank_offset > 2 {
         return Vec::new();
     }
