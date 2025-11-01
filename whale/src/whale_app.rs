@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use eframe::{egui, App};
 use crate::chess_parts::{piece_from_u8, Board, Piece, Mailbox64Index};
-use crate::chess_engine::{generate_pseudolegal};
+use crate::chess_engine::{generate_legal};
 
 #[allow(dead_code)]
 fn print_board(board: Board){
@@ -199,7 +199,7 @@ impl App for WhaleApp {
                             );
                         }
                     }
-                    let pseudolegal_moves = generate_pseudolegal(&self.board, Mailbox64Index((row * 8 + col) as u8));
+                    let pseudolegal_moves = generate_legal(&self.board, Mailbox64Index((row * 8 + col) as u8));
                     for target_index in pseudolegal_moves {
                         let target_row = (target_index.0 / 8) as usize;
                         let target_col = (target_index.0 % 8) as usize;
