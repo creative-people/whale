@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use eframe::{egui, App};
-use crate::chess_parts::{piece_from_u8, Board, Piece, Mailbox64Index};
-use crate::chess_engine::{generate_legal};
+use crate::chess_parts::*;
+use crate::chess_engine::*;
 
 #[allow(dead_code)]
 fn print_board(board: Board){

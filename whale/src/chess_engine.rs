@@ -1,4 +1,4 @@
-use crate::chess_parts::{Board, Mailbox64Index, piece_from_u8, MOVESETS, offset_index_2d, offset_ray_2d};
+use crate::chess_parts::*;
 
 fn generate_pseudolegal(board: &Board, index: Mailbox64Index) -> Vec<Mailbox64Index> {
     let mut moves = Vec::new();
